@@ -3,8 +3,12 @@ import {
   distributeEqually,
   resetToEqualDistribution,
   setImageDuration,
+  adjustImageBoundary,
   insertTelop,
   setFadeOutAt,
+  setTelopStart,
+  setTelopEnd,
+  moveTelop,
   telopVisibleEnd,
   normalizeTelop,
 } from "./timing";
@@ -151,5 +155,87 @@ describe("setFadeOutAt", () => {
     const t = makeTelop({ id: 1 });
     const result = setFadeOutAt([t], 999, 5);
     expect(result).toEqual([t]);
+  });
+});
+
+describe("adjustImageBoundary", () => {
+  it("隣接2枚の合計時間を変えずに境界を移動する", () => {
+    const images = resetToEqualDistribution(makeImages(3), 30); // [10,10,10]
+    const result = adjustImageBoundary(images, 0, 2); // 境界を2秒右へ
+    expect(result[0].duration).toBeCloseTo(12, 3);
+    expect(result[1].duration).toBeCloseTo(8, 3);
+    expect(result[2].duration).toBeCloseTo(10, 3); // 影響なし
+    const sum = result.reduce((a, b) => a + b.duration, 0);
+    expect(sum).toBeCloseTo(30, 3);
+  });
+
+  it("両方を manual にする", () => {
+    const images = resetToEqualDistribution(makeImages(2), 20);
+    const result = adjustImageBoundary(images, 0, 1);
+    expect(result[0].manual).toBe(true);
+    expect(result[1].manual).toBe(true);
+  });
+
+  it("最小秒数でクランプされる", () => {
+    const images = resetToEqualDistribution(makeImages(2), 5); // [2.5, 2.5]
+    const result = adjustImageBoundary(images, 0, 100, 0.5);
+    expect(result[0].duration).toBeLessThanOrEqual(5 - 0.5 + 1e-9);
+    expect(result[1].duration).toBeGreaterThanOrEqual(0.5 - 1e-9);
+  });
+
+  it("存在しない index はそのまま返す", () => {
+    const images = resetToEqualDistribution(makeImages(2), 20);
+    expect(adjustImageBoundary(images, 5, 1)).toEqual(images);
+  });
+});
+
+describe("setTelopStart", () => {
+  it("開始位置を変更する", () => {
+    const t = makeTelop({ id: 1, timeIn: 2, fadeOutStart: 8, fadeOutDur: 0.8 });
+    const result = setTelopStart([t], 1, 4);
+    expect(result[0].timeIn).toBeCloseTo(4, 3);
+  });
+
+  it("フェードアウト開始を超えて右に動かせない", () => {
+    const t = makeTelop({ id: 1, timeIn: 2, fadeOutStart: 8, fadeOutDur: 0.8 });
+    const result = setTelopStart([t], 1, 10);
+    expect(result[0].timeIn).toBeLessThan(8);
+  });
+
+  it("0未満にはならない", () => {
+    const t = makeTelop({ id: 1, timeIn: 2, fadeOutStart: 8, fadeOutDur: 0.8 });
+    const result = setTelopStart([t], 1, -5);
+    expect(result[0].timeIn).toBe(0);
+  });
+});
+
+describe("setTelopEnd", () => {
+  it("fadeOutDur を調整して終了位置を変更する", () => {
+    const t = makeTelop({ id: 1, timeIn: 0, fadeOutStart: 4, fadeOutDur: 0.8 });
+    const result = setTelopEnd([t], 1, 6);
+    expect(telopVisibleEnd(result[0])).toBeCloseTo(6, 3);
+  });
+
+  it("フェードアウト開始より前には縮められない", () => {
+    const t = makeTelop({ id: 1, timeIn: 0, fadeOutStart: 4, fadeOutDur: 0.8 });
+    const result = setTelopEnd([t], 1, 2);
+    expect(result[0].fadeOutDur).toBeGreaterThan(0);
+    expect(telopVisibleEnd(result[0])).toBeGreaterThan(4);
+  });
+});
+
+describe("moveTelop", () => {
+  it("timeIn と fadeOutStart を同じ量だけシフトする", () => {
+    const t = makeTelop({ id: 1, timeIn: 2, fadeOutStart: 6, fadeOutDur: 0.8 });
+    const result = moveTelop([t], 1, 5); // +3
+    expect(result[0].timeIn).toBeCloseTo(5, 3);
+    expect(result[0].fadeOutStart).toBeCloseTo(9, 3);
+    expect(result[0].fadeOutDur).toBeCloseTo(0.8, 3);
+  });
+
+  it("0未満にはならない", () => {
+    const t = makeTelop({ id: 1, timeIn: 2, fadeOutStart: 6, fadeOutDur: 0.8 });
+    const result = moveTelop([t], 1, -10);
+    expect(result[0].timeIn).toBe(0);
   });
 });

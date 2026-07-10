@@ -4,6 +4,7 @@ import { saveProjectAs, saveProjectTo, openProject } from "./logic/projectFileIO
 import { initPreviewEngine } from "./preview/engine";
 import { initInspector } from "./ui/inspector";
 import { initTelopActions } from "./ui/telopActions";
+import { initTimeline } from "./ui/timeline";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
@@ -86,6 +87,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initPreviewEngine();
   initInspector();
   initTelopActions();
+  initTimeline();
   subscribe(updateHeaderAndTransport);
   updateHeaderAndTransport();
 });

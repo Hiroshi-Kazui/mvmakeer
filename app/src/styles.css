@@ -262,6 +262,15 @@ main { display: grid; grid-template-columns: 250px 1fr 280px; min-height: 0; }
   display: flex; align-items: end; padding: 3px 6px; pointer-events: none;
   background-size: cover; background-position: center;
 }
+.img-boundary {
+  position: absolute; top: 0; bottom: 0; right: -6px; width: 12px;
+  cursor: ew-resize; pointer-events: auto; z-index: 5;
+}
+.img-boundary::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 2px; border-radius: 1px; background: #ffffff55;
+}
+.img-boundary:hover::after { background: #fff; }
 .wave { position: absolute; inset: 6px 0; opacity: .75; }
 .playhead {
   position: absolute; top: 0; bottom: 0; width: 1px; background: var(--accent-2);

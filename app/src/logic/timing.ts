@@ -79,6 +79,32 @@ export function setImageDuration(
   return updated;
 }
 
+/**
+ * index と index+1 の画像の境界をタイムライン上でドラッグ移動する。
+ * 2枚の合計時間は変えず、境界の前後だけで配分し直す(他の画像には影響しない)。
+ * setImageDuration とは異なり、変更を隣接2枚に限定する(境界ドラッグのUXに対応)。
+ */
+export function adjustImageBoundary(
+  images: ImageEntry[],
+  index: number,
+  delta: number,
+  minDuration = MIN_IMAGE_DURATION,
+): ImageEntry[] {
+  const left = images[index];
+  const right = images[index + 1];
+  if (!left || !right) return images;
+
+  const pairTotal = left.duration + right.duration;
+  const newLeftDuration = Math.min(Math.max(left.duration + delta, minDuration), pairTotal - minDuration);
+  const newRightDuration = pairTotal - newLeftDuration;
+
+  return images.map((im, i) => {
+    if (i === index) return { ...im, duration: round3(newLeftDuration), manual: true };
+    if (i === index + 1) return { ...im, duration: round3(newRightDuration), manual: true };
+    return im;
+  });
+}
+
 // ============ テロップの時刻 ============
 
 /** テロップが完全に消える時刻(フェードアウト完了位置)。 */
@@ -116,8 +142,8 @@ export function insertTelop(telops: Telop[], newTelop: Telop): Telop[] {
 }
 
 /**
- * id のテロップのフェードアウト開始位置を time に設定する(「O」操作)。
- * 次のテロップの開始位置を超えないようクランプする。
+ * id のテロップのフェードアウト開始位置を time に設定する(「O」操作/タイムラインの
+ * O マーカードラッグ)。次のテロップの開始位置を超えないようクランプする。
  */
 export function setFadeOutAt(telops: Telop[], id: number, time: number): Telop[] {
   const sorted = sortByTimeIn(telops);
@@ -136,4 +162,36 @@ export function setFadeOutAt(telops: Telop[], id: number, time: number): Telop[]
 
   sorted[idx] = normalizeTelop({ ...t, fadeOutStart, fadeOutDur });
   return sorted;
+}
+
+/** タイムライン上でクリップ左端(開始位置)をドラッグする。フェードアウト開始より前に制限。 */
+export function setTelopStart(telops: Telop[], id: number, newTimeIn: number): Telop[] {
+  return telops.map((t) => {
+    if (t.id !== id) return t;
+    const timeIn = Math.max(0, Math.min(newTimeIn, t.fadeOutStart - MIN_TELOP_VISIBLE_DURATION));
+    return normalizeTelop({ ...t, timeIn: round3(Math.max(0, timeIn)) });
+  });
+}
+
+/** タイムライン上でクリップ右端(完全消滅位置)をドラッグする。fadeOutDur を調整する。 */
+export function setTelopEnd(telops: Telop[], id: number, newEnd: number): Telop[] {
+  return telops.map((t) => {
+    if (t.id !== id) return t;
+    const fadeOutDur = Math.max(MIN_TELOP_VISIBLE_DURATION, newEnd - t.fadeOutStart);
+    return normalizeTelop({ ...t, fadeOutDur: round3(fadeOutDur) });
+  });
+}
+
+/** クリップ本体をドラッグして移動する(timeIn/fadeOutStart を同じ量だけシフト)。 */
+export function moveTelop(telops: Telop[], id: number, newTimeIn: number): Telop[] {
+  return telops.map((t) => {
+    if (t.id !== id) return t;
+    const clampedTimeIn = Math.max(0, newTimeIn);
+    const delta = clampedTimeIn - t.timeIn;
+    return normalizeTelop({
+      ...t,
+      timeIn: round3(clampedTimeIn),
+      fadeOutStart: round3(t.fadeOutStart + delta),
+    });
+  });
 }

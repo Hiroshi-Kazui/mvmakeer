@@ -296,6 +296,16 @@ function wireTransportControls(): void {
   });
 }
 
+/**
+ * ドラッグ操作中など、state へのコミット(setProject)前に一時的な配列で
+ * プレビューだけ即時更新したい場合に使う。commit しない軽量パス。
+ */
+export function previewWithOverrides(overrides: { images?: ImageEntry[]; telops?: Telop[] }): void {
+  const { project, currentTime } = getState();
+  renderImages(currentTime, overrides.images ?? project.images);
+  renderTelop(currentTime, overrides.telops ?? project.telops);
+}
+
 export function initPreviewEngine(): void {
   wireTransportControls();
   subscribe(() => {
