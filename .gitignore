@@ -6,3 +6,9 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# PoC の生成物(スクリプトで再現可能。ffmpeg動画/ダミー画像を再度gitに入れない)
+poc/out/
+poc/testimg50/
+poc/filter50.txt
+poc/inputs50.txt

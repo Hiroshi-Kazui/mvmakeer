@@ -1,13 +1,13 @@
 # 実装進捗
 
-現在のフェーズ: **Phase 1(未着手)**
+現在のフェーズ: **Phase 2(未着手)**
 
 プラン: `plans/mvmaker-v1-2026-07-10.md` / 要件: `要件定義.md`
 
 ## フェーズ状況
 
 - [x] **Phase 0: スキャフォールド** — `tauri dev` でウィンドウが開き、sidecar `ffmpeg -version` が取得できる
-- [ ] **Phase 1: ffmpeg PoC** — 日本語テロップ+クロスフェード+音声の mp4 生成OK、50枚方式確定、`poc/RESULT.md` 記録済み
+- [x] **Phase 1: ffmpeg PoC** — 日本語テロップ+クロスフェード+音声の mp4 生成OK、50枚方式確定、`poc/RESULT.md` 記録済み
 - [ ] **Phase 2: ドメインモデル** — timing ロジックの vitest 通過、.mvproj 保存→読込ラウンドトリップ一致
 - [ ] **Phase 3: UIシェル・素材管理** — 実ファイルで素材一覧・並べ替え・差し替えが機能
 - [ ] **Phase 4: プレビューエンジン** — 実素材で再生・シークでき、画像・テロップ表示が正しい
@@ -20,3 +20,4 @@
 
 - 2026-07-10: リポジトリ初期化、要件定義・プラン・モック・ハーネス整備
 - 2026-07-10: Phase 0 完了。Tauri 2 + vanilla-ts スキャフォールド、plugin-dialog/shell/fs、ffmpegサイドカー(BtbN GPLビルド)配置。ウィンドウ起動+sidecar `ffmpeg -version` 呼び出しをスクリーンショットで確認
+- 2026-07-10: Phase 1 完了。実素材(`music/Holding_the_Silence.mp3` + `images/*.png`)でxfade+音声多重化とASS日本語字幕焼き込みを検証、画像50枚・10分尺のxfadeチェーンを140秒でエンコードできることを実測。ASS字幕方式・直列xfadeチェーン(セグメント分割不要)を確定。詳細は `poc/RESULT.md`
