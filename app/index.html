@@ -1,45 +1,163 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="/src/styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/src/main.ts" defer></script>
-  </head>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/src/styles.css">
+<title>MV Maker</title>
+<script type="module" src="/src/main.ts" defer></script>
+</head>
+<body>
+<div class="app">
 
-  <body>
-    <main class="container">
-      <h1>Welcome to Tauri</h1>
+  <!-- ================= header ================= -->
+  <header>
+    <div class="logo">MV<span>Maker</span></div>
+    <div class="project" id="projectNameBox">プロジェクト名: <b id="projectName" style="color:var(--text-0)">New Project</b> ✎</div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnSave">プロジェクトを保存</button>
+    <button class="btn" id="btnOpen">開く</button>
+    <button class="btn primary" id="btnExport" disabled>⬇ 書き出し (MP4)</button>
+  </header>
 
-      <div class="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/src/assets/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img
-            src="/src/assets/tauri.svg"
-            class="logo tauri"
-            alt="Tauri logo"
-          />
-        </a>
-        <a href="https://www.typescriptlang.org/docs" target="_blank">
-          <img
-            src="/src/assets/typescript.svg"
-            class="logo typescript"
-            alt="typescript logo"
-          />
-        </a>
+  <main>
+    <!-- ================= left panel ================= -->
+    <aside class="panel left">
+      <div class="sec">
+        <h2>1. 素材 <button class="mini" id="btnAddImages">+ 画像を追加</button></h2>
+        <div id="imgList"></div>
+        <div id="imgEmptyHint" class="empty-hint">画像を追加してください(jpg/png)</div>
+
+        <div id="audioSlot"></div>
+        <button class="btn big" id="btnAddAudio" style="margin:6px 0 10px">♪ 音声ファイルを選択</button>
       </div>
-      <p>Click on the Tauri logo to learn more about the framework</p>
+    </aside>
 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
+    <!-- ================= center ================= -->
+    <section class="center">
+      <div class="preview-wrap">
+        <div class="preview" id="preview">
+          <div class="telop-layer"><div class="telop-text" id="telopText"></div></div>
+          <div class="active-badge" id="activeBadge">アクティブ</div>
+          <div class="rec-indicator" id="recInd"><span class="dot"></span>打ち込み中</div>
+        </div>
+      </div>
 
-      <p id="ffmpeg-status">ffmpeg sidecar: checking...</p>
-    </main>
-  </body>
+      <div class="transport">
+        <button class="tbtn" id="btnPrev" title="先頭へ" disabled>⏮</button>
+        <button class="tbtn play" id="btnPlay" disabled>▶</button>
+        <button class="tbtn" id="btnNext" title="末尾へ" disabled>⏭</button>
+        <div class="timecode"><b id="tcCur">00:00.0</b> / <span id="tcDur">00:00.0</span></div>
+        <div class="seek" id="seek">
+          <div class="rail">
+            <div class="fill" id="seekFill" style="width:0%"></div>
+            <div class="knob" id="seekKnob" style="left:0%"></div>
+          </div>
+        </div>
+        <button class="tbtn" title="音量">🔊</button>
+      </div>
+
+      <div class="actions">
+        <button class="abtn insert" id="btnInsert" disabled>Ｔ テロップを挿入 <kbd style="color:#fff;border-color:#ffffff55">I</kbd></button>
+        <button class="abtn fadeout" id="btnFadeOut" disabled>◐ ここでフェードアウト <kbd>O</kbd></button>
+        <div class="gap"></div>
+        <button class="abtn danger" id="btnDelete" disabled>🗑 削除</button>
+      </div>
+
+      <div class="timeline">
+        <div style="position:relative; overflow:hidden;">
+          <div class="ruler" id="ruler"></div>
+        </div>
+        <div class="lanes-scroll">
+          <div class="lanes" id="lanes"></div>
+          <div class="playhead" id="playhead" data-t="00:00.0"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= right panel ================= -->
+    <aside class="panel right" id="inspector">
+      <div class="inspector-empty" id="inspEmpty">
+        テロップを選択すると<br>ここで編集できます
+      </div>
+      <div id="inspBody" style="display:none">
+        <div class="sec">
+          <h2>テロップ編集</h2>
+          <div class="field">
+            <label>テキスト</label>
+            <textarea class="txt" id="inspText" rows="3"></textarea>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>フォント</label>
+              <select class="txt" id="inspFont"><option>游明朝</option><option>游ゴシック</option><option>Noto Sans JP</option></select>
+            </div>
+            <div class="field" style="max-width:80px">
+              <label>サイズ</label>
+              <input class="txt" id="inspSize" value="72">
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>位置</label>
+              <div class="pos-grid" id="posGrid"></div>
+            </div>
+            <div class="field">
+              <label>色</label>
+              <div class="swatch-row" id="colorSwatches">
+                <div class="swatch on" data-color="#ffffff" style="background:#fff"></div>
+                <div class="swatch" data-color="#ffe27a" style="background:#ffe27a"></div>
+                <div class="swatch" data-color="#8fd0ff" style="background:#8fd0ff"></div>
+                <div class="swatch" data-color="#ff9db5" style="background:#ff9db5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sec">
+          <h2>タイミング</h2>
+          <div class="field">
+            <label>表示開始(フェードイン)</label>
+            <div class="stepper" data-key="timeIn">
+              <button data-d="-0.1">−</button><div class="val"></div><button data-d="0.1">＋</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>フェードアウト開始 <span style="color:var(--amber)">O</span></label>
+            <div class="stepper" data-key="fadeOutStart">
+              <button data-d="-0.1">−</button><div class="val hl"></div><button data-d="0.1">＋</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>フェードイン時間</label>
+              <div class="stepper" data-key="fadeInDur">
+                <button data-d="-0.1">−</button><div class="val"></div><button data-d="0.1">＋</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>フェードアウト時間</label>
+              <div class="stepper" data-key="fadeOutDur">
+                <button data-d="-0.1">−</button><div class="val"></div><button data-d="0.1">＋</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ================= footer ================= -->
+  <footer>
+    <span class="k"><kbd>Space</kbd> 再生 / 停止</span>
+    <span class="k"><kbd>I</kbd> テロップ挿入</span>
+    <span class="k"><kbd>O</kbd> フェードアウト</span>
+    <span class="k"><kbd>←</kbd><kbd>→</kbd> 1秒シーク</span>
+    <span class="k"><kbd>Del</kbd> 削除</span>
+    <div class="spacer"></div>
+    <span id="statusMsg">画像と音声を追加してください</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+</body>
 </html>
