@@ -10,6 +10,7 @@ export interface AppState {
 }
 
 type Listener = (state: AppState) => void;
+type TimeListener = (currentTime: number) => void;
 
 function createInitialState(): AppState {
   return {
@@ -24,6 +25,7 @@ function createInitialState(): AppState {
 
 let state: AppState = createInitialState();
 const listeners = new Set<Listener>();
+const timeListeners = new Set<TimeListener>();
 
 export function getState(): AppState {
   return state;
@@ -32,6 +34,16 @@ export function getState(): AppState {
 export function subscribe(listener: Listener): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+/**
+ * currentTime のみの変更を購読する(subscribe とは別枠)。
+ * setPlaybackTime は再生中 60fps 級で呼ばれるため、subscribe の全体通知に
+ * 混ぜると素材パネル等が無駄に再描画される。プレビューの描画ループはこちらを使う。
+ */
+export function subscribeTime(listener: TimeListener): () => void {
+  timeListeners.add(listener);
+  return () => timeListeners.delete(listener);
 }
 
 function apply(patch: Partial<AppState>): void {
@@ -44,8 +56,10 @@ export function setProject(project: Project, markDirty = true): void {
   apply({ project, dirty: markDirty });
 }
 
+/** 高頻度に呼ばれる想定。subscribe ではなく subscribeTime にのみ通知する。 */
 export function setPlaybackTime(currentTime: number): void {
-  apply({ currentTime });
+  state = { ...state, currentTime };
+  for (const listener of timeListeners) listener(currentTime);
 }
 
 export function setPlaying(playing: boolean): void {

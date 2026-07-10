@@ -1,6 +1,7 @@
 import { getState, subscribe, setProject, markSaved } from "./state";
 import { initMaterialsPanel } from "./ui/materials";
 import { saveProjectAs, saveProjectTo, openProject } from "./logic/projectFileIO";
+import { initPreviewEngine } from "./preview/engine";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
@@ -80,6 +81,7 @@ async function handleOpen(): Promise<void> {
 window.addEventListener("DOMContentLoaded", () => {
   initMaterialsPanel();
   initHeaderActions();
+  initPreviewEngine();
   subscribe(updateHeaderAndTransport);
   updateHeaderAndTransport();
 });

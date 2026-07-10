@@ -1,6 +1,9 @@
 import type { ImageEntry, Telop } from "../types";
+import { CROSSFADE_DURATION } from "../shared/params";
 
-export const MIN_IMAGE_DURATION = 0.5;
+// クロスフェードの前後フェード窓([start-cf, start) と [end-cf, end))が
+// 重ならないよう、最小表示時間はクロスフェード時間の2倍を確保する(preview/engine.ts参照)。
+export const MIN_IMAGE_DURATION = CROSSFADE_DURATION * 2;
 export const MIN_TELOP_VISIBLE_DURATION = 0.1;
 
 function round3(n: number): number {

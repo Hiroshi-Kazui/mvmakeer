@@ -128,11 +128,9 @@ main { display: grid; grid-template-columns: 250px 1fr 280px; min-height: 0; }
   box-shadow: 0 8px 40px #00000080; outline: 1px solid var(--line);
 }
 .slide {
-  position: absolute; inset: 0; opacity: 0; transition: opacity .6s;
-  display: grid; place-items: end start;
+  position: absolute; inset: 0; opacity: 0;
   background-size: cover; background-position: center;
 }
-.slide.on { opacity: 1; }
 .slide .tag {
   margin: 0 0 10px 12px; font-size: 10px; color: #ffffff88;
   background: #00000066; padding: 2px 8px; border-radius: 20px;
