@@ -5,21 +5,14 @@ import { initPreviewEngine } from "./preview/engine";
 import { initInspector } from "./ui/inspector";
 import { initTelopActions } from "./ui/telopActions";
 import { initTimeline } from "./ui/timeline";
+import { initExportPanel } from "./ui/exportPanel";
+import { toast } from "./ui/toast";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
   const s = Math.floor(t % 60);
   const d = Math.floor((t % 1) * 10);
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${d}`;
-}
-
-function toast(msg: string): void {
-  const el = document.getElementById("toast");
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add("on");
-  window.clearTimeout((el as unknown as { _tm?: number })._tm);
-  (el as unknown as { _tm?: number })._tm = window.setTimeout(() => el.classList.remove("on"), 2000);
 }
 
 function updateHeaderAndTransport(): void {
@@ -35,6 +28,9 @@ function updateHeaderAndTransport(): void {
     const btn = document.getElementById(id) as HTMLButtonElement | null;
     if (btn) btn.disabled = !hasAudio;
   }
+
+  const btnExport = document.getElementById("btnExport") as HTMLButtonElement | null;
+  if (btnExport) btnExport.disabled = !hasAudio || project.images.length === 0;
 
   const status = document.getElementById("statusMsg");
   if (status) {
@@ -88,6 +84,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initInspector();
   initTelopActions();
   initTimeline();
+  initExportPanel();
   subscribe(updateHeaderAndTransport);
   updateHeaderAndTransport();
 });
