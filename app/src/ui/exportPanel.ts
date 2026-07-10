@@ -6,7 +6,7 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { getState } from "../state";
 import { buildAssContent } from "../export/assBuilder";
 import { buildFfmpegArgs } from "../export/ffmpegCommand";
-import { toast } from "./toast";
+import { toast, errorMessage } from "./toast";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
@@ -50,7 +50,7 @@ async function runExport(): Promise<void> {
     assFilePath = await join(dir, `mvmaker-${Date.now()}.ass`);
     plan = buildFfmpegArgs(project, assFilePath, outputPath);
   } catch (e) {
-    toast(`書き出し準備に失敗しました: ${(e as Error).message}`);
+    toast(`書き出し準備に失敗しました: ${errorMessage(e)}`);
     return;
   }
 
@@ -82,7 +82,7 @@ async function runExport(): Promise<void> {
     await revealItemInDir(outputPath).catch(() => undefined);
   } catch (e) {
     hideOverlay();
-    toast(`書き出しに失敗しました: ${(e as Error).message ?? String(e)}`);
+    toast(`書き出しに失敗しました: ${errorMessage(e)}`);
   } finally {
     unlistenProgress?.();
     unlistenEnd?.();

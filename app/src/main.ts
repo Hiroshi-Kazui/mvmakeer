@@ -1,12 +1,14 @@
+import { confirm, message } from "@tauri-apps/plugin-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getState, subscribe, setProject, markSaved } from "./state";
 import { initMaterialsPanel } from "./ui/materials";
-import { saveProjectAs, saveProjectTo, openProject } from "./logic/projectFileIO";
+import { saveProjectAs, saveProjectTo, openProject, checkMissingAssets } from "./logic/projectFileIO";
 import { initPreviewEngine } from "./preview/engine";
 import { initInspector } from "./ui/inspector";
 import { initTelopActions } from "./ui/telopActions";
 import { initTimeline } from "./ui/timeline";
 import { initExportPanel } from "./ui/exportPanel";
-import { toast } from "./ui/toast";
+import { toast, errorMessage } from "./ui/toast";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
@@ -60,11 +62,20 @@ async function handleSave(): Promise<void> {
     markSaved(currentPath!);
     toast("プロジェクトを保存しました");
   } catch (e) {
-    toast(`保存に失敗しました: ${(e as Error).message}`);
+    toast(`保存に失敗しました: ${errorMessage(e)}`);
   }
 }
 
+async function confirmDiscardIfDirty(): Promise<boolean> {
+  if (!getState().dirty) return true;
+  return confirm("保存されていない変更があります。破棄してよろしいですか?", {
+    title: "未保存の変更",
+    kind: "warning",
+  });
+}
+
 async function handleOpen(): Promise<void> {
+  if (!(await confirmDiscardIfDirty())) return;
   try {
     const result = await openProject();
     if (!result) return;
@@ -72,9 +83,29 @@ async function handleOpen(): Promise<void> {
     setProject(result.project, false);
     markSaved(result.path);
     toast("プロジェクトを開きました");
+
+    const missing = await checkMissingAssets(result.project);
+    if (missing.length > 0) {
+      await message(`以下の素材ファイルが見つかりません。左パネルから再指定してください。\n\n${missing.join("\n")}`, {
+        title: "素材が見つかりません",
+        kind: "warning",
+      });
+    }
   } catch (e) {
-    toast(`読み込みに失敗しました: ${(e as Error).message}`);
+    toast(`読み込みに失敗しました: ${errorMessage(e)}`);
   }
+}
+
+function initCloseGuard(): void {
+  void getCurrentWindow().onCloseRequested(async (event) => {
+    if (!getState().dirty) return;
+    event.preventDefault();
+    const ok = await confirm("保存されていない変更があります。保存せずに終了しますか?", {
+      title: "未保存の変更",
+      kind: "warning",
+    });
+    if (ok) await getCurrentWindow().destroy();
+  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -85,6 +116,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initTelopActions();
   initTimeline();
   initExportPanel();
+  initCloseGuard();
   subscribe(updateHeaderAndTransport);
   updateHeaderAndTransport();
 });

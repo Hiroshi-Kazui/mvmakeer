@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, confirm } from "@tauri-apps/plugin-dialog";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { AudioEntry, ImageEntry } from "../types";
 import { getState, setProject, subscribe } from "../state";
@@ -50,7 +50,12 @@ async function addImages(): Promise<void> {
   applyImages(audio ? resetToEqualDistribution(images, audio.duration) : images);
 }
 
-function removeImage(index: number): void {
+async function removeImage(index: number): Promise<void> {
+  const target = currentImages()[index];
+  if (!target) return;
+  const ok = await confirm(`「${basename(target.path)}」を削除しますか?`, { title: "削除の確認", kind: "warning" });
+  if (!ok) return;
+
   const images = currentImages().filter((_, i) => i !== index);
   const audio = currentAudio();
   applyImages(audio && images.length > 0 ? resetToEqualDistribution(images, audio.duration) : images);
@@ -73,7 +78,12 @@ async function addAudio(): Promise<void> {
   setProject({ ...project, audio: { path: selected, duration }, images });
 }
 
-function removeAudio(): void {
+async function removeAudio(): Promise<void> {
+  const audio = currentAudio();
+  if (!audio) return;
+  const ok = await confirm(`「${basename(audio.path)}」を削除しますか?`, { title: "削除の確認", kind: "warning" });
+  if (!ok) return;
+
   const project = getState().project;
   setProject({ ...project, audio: null });
 }
@@ -100,7 +110,7 @@ function renderImageList(container: HTMLElement, emptyHint: HTMLElement): void {
 
     item.querySelector(".del")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      removeImage(i);
+      void removeImage(i);
     });
 
     item.addEventListener("dragstart", (e) => {
@@ -139,7 +149,7 @@ function renderAudioSlot(container: HTMLElement): void {
       <button class="del" title="削除">✕</button>
     </div>
   `;
-  container.querySelector(".del")?.addEventListener("click", removeAudio);
+  container.querySelector(".del")?.addEventListener("click", () => void removeAudio());
 }
 
 export function initMaterialsPanel(): void {
