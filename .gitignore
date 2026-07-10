@@ -12,3 +12,7 @@ poc/out/
 poc/testimg50/
 poc/filter50.txt
 poc/inputs50.txt
+
+# 動作確認用の実素材(個人の音楽・画像。著作権のあるファイルをリポジトリに含めない)
+/images/
+/music/
