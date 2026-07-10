@@ -1,12 +1,12 @@
 # 実装進捗
 
-現在のフェーズ: **Phase 0(未着手)**
+現在のフェーズ: **Phase 1(未着手)**
 
 プラン: `plans/mvmaker-v1-2026-07-10.md` / 要件: `要件定義.md`
 
 ## フェーズ状況
 
-- [ ] **Phase 0: スキャフォールド** — `tauri dev` でウィンドウが開き、sidecar `ffmpeg -version` が取得できる
+- [x] **Phase 0: スキャフォールド** — `tauri dev` でウィンドウが開き、sidecar `ffmpeg -version` が取得できる
 - [ ] **Phase 1: ffmpeg PoC** — 日本語テロップ+クロスフェード+音声の mp4 生成OK、50枚方式確定、`poc/RESULT.md` 記録済み
 - [ ] **Phase 2: ドメインモデル** — timing ロジックの vitest 通過、.mvproj 保存→読込ラウンドトリップ一致
 - [ ] **Phase 3: UIシェル・素材管理** — 実ファイルで素材一覧・並べ替え・差し替えが機能
@@ -19,3 +19,4 @@
 ## 更新ログ
 
 - 2026-07-10: リポジトリ初期化、要件定義・プラン・モック・ハーネス整備
+- 2026-07-10: Phase 0 完了。Tauri 2 + vanilla-ts スキャフォールド、plugin-dialog/shell/fs、ffmpegサイドカー(BtbN GPLビルド)配置。ウィンドウ起動+sidecar `ffmpeg -version` 呼び出しをスクリーンショットで確認
