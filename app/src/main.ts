@@ -2,6 +2,8 @@ import { getState, subscribe, setProject, markSaved } from "./state";
 import { initMaterialsPanel } from "./ui/materials";
 import { saveProjectAs, saveProjectTo, openProject } from "./logic/projectFileIO";
 import { initPreviewEngine } from "./preview/engine";
+import { initInspector } from "./ui/inspector";
+import { initTelopActions } from "./ui/telopActions";
 
 function fmtTimecode(t: number): string {
   const m = Math.floor(t / 60);
@@ -82,6 +84,8 @@ window.addEventListener("DOMContentLoaded", () => {
   initMaterialsPanel();
   initHeaderActions();
   initPreviewEngine();
+  initInspector();
+  initTelopActions();
   subscribe(updateHeaderAndTransport);
   updateHeaderAndTransport();
 });
