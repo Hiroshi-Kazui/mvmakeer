@@ -1,6 +1,6 @@
 import type { Telop, TelopPosition } from "../types";
 import { getState, setProject, subscribe } from "../state";
-import { normalizeTelop } from "../logic/timing";
+import { normalizeTelop, setFadeOutAt, setTelopStart } from "../logic/timing";
 
 const POSITIONS: TelopPosition[] = [
   "top-left", "top-center", "top-right",
@@ -74,7 +74,7 @@ function wireStaticControls(): void {
     });
   });
 
-  document.querySelectorAll<HTMLElement>(".stepper button").forEach((btn) => {
+  document.querySelectorAll<HTMLElement>(".stepper button[data-d]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const key = btn.closest<HTMLElement>(".stepper")?.dataset.key as keyof Telop | undefined;
       const delta = parseFloat(btn.dataset.d ?? "0");
@@ -84,6 +84,19 @@ function wireStaticControls(): void {
       if (typeof current !== "number") return;
       updateSelected({ [key]: Math.max(0, current + delta) } as Partial<Telop>);
     });
+  });
+
+  // 「現在位置」: 再生ヘッドの時刻を表示開始 / フェードアウト開始に設定する。
+  // クランプはタイムラインのハンドルドラッグと同じ logic/timing.ts の関数に委ねる。
+  document.getElementById("btnTimeInNow")?.addEventListener("click", () => {
+    const { project, selectedTelopId, currentTime } = getState();
+    if (selectedTelopId === null) return;
+    setProject({ ...project, telops: setTelopStart(project.telops, selectedTelopId, currentTime) });
+  });
+  document.getElementById("btnFadeOutNow")?.addEventListener("click", () => {
+    const { project, selectedTelopId, currentTime } = getState();
+    if (selectedTelopId === null) return;
+    setProject({ ...project, telops: setFadeOutAt(project.telops, selectedTelopId, currentTime) });
   });
 }
 
