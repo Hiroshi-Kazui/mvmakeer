@@ -60,8 +60,10 @@ async fn export_video(
                     let line = stdout_buf[..pos].trim().to_string();
                     stdout_buf.drain(..=pos);
                     if let Some(v) = line.strip_prefix("out_time_ms=") {
-                        if let Ok(ms) = v.trim().parse::<i64>() {
-                            let _ = app.emit("export-progress", ms.max(0) as u64);
+                        // ffmpeg の out_time_ms は名前に反してマイクロ秒(out_time_us と同値)。
+                        // フロントはミリ秒を期待するので 1000 で割って送る。
+                        if let Ok(us) = v.trim().parse::<i64>() {
+                            let _ = app.emit("export-progress", (us.max(0) / 1000) as u64);
                         }
                     } else if line == "progress=end" {
                         let _ = app.emit("export-progress-end", ());
