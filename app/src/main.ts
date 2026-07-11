@@ -44,7 +44,15 @@ function updateHeaderAndTransport(): void {
 
 function initHeaderActions(): void {
   document.getElementById("btnSave")?.addEventListener("click", () => void handleSave());
+  document.getElementById("btnSaveAs")?.addEventListener("click", () => void handleSaveAs());
   document.getElementById("btnOpen")?.addEventListener("click", () => void handleOpen());
+
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s") return;
+    e.preventDefault();
+    if (e.shiftKey) void handleSaveAs();
+    else void handleSave();
+  });
 }
 
 /** ヘッダーのプロジェクト名クリックでインライン編集(Enter/フォーカスアウトで確定、Escで取消)。 */
@@ -86,18 +94,28 @@ function initProjectRename(): void {
 
 let currentPath: string | null = null;
 
+/** 上書き保存。保存先が未定なら「名前を付けて保存」に切り替わる。 */
 async function handleSave(): Promise<void> {
+  if (!currentPath) return handleSaveAs();
   const { project } = getState();
   try {
-    if (currentPath) {
-      await saveProjectTo(project, currentPath);
-    } else {
-      const path = await saveProjectAs(project);
-      if (!path) return;
-      currentPath = path;
-    }
-    markSaved(currentPath!);
+    await saveProjectTo(project, currentPath);
+    markSaved(currentPath);
     toast("プロジェクトを保存しました");
+  } catch (e) {
+    toast(`保存に失敗しました: ${errorMessage(e)}`);
+  }
+}
+
+/** 名前を付けて保存。ダイアログで保存先を選び、以降の上書き保存先もそこに切り替える。 */
+async function handleSaveAs(): Promise<void> {
+  const { project } = getState();
+  try {
+    const path = await saveProjectAs(project);
+    if (!path) return; // ダイアログでキャンセル
+    currentPath = path;
+    markSaved(path);
+    toast(`プロジェクトを保存しました: ${path}`);
   } catch (e) {
     toast(`保存に失敗しました: ${errorMessage(e)}`);
   }
