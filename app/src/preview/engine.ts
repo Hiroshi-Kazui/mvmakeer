@@ -280,6 +280,11 @@ function wireTransportControls(): void {
     });
   }
 
+  const volSlider = document.getElementById("volSlider") as HTMLInputElement | null;
+  volSlider?.addEventListener("input", () => {
+    ensureAudioElement().volume = clamp01(Number(volSlider.value) / 100);
+  });
+
   document.addEventListener("keydown", (e) => {
     if (!getState().project.audio) return;
     const target = e.target as HTMLElement;

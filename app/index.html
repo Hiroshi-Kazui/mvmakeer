@@ -13,7 +13,7 @@
   <!-- ================= header ================= -->
   <header>
     <div class="logo">MV<span>Maker</span></div>
-    <div class="project" id="projectNameBox">プロジェクト名: <b id="projectName" style="color:var(--text-0)">New Project</b> ✎</div>
+    <div class="project" id="projectNameBox" title="クリックで名前を変更">プロジェクト名: <b id="projectName" style="color:var(--text-0)">New Project</b><input id="projectNameInput" maxlength="80" style="display:none"> ✎</div>
     <div class="spacer"></div>
     <button class="btn" id="btnSave">プロジェクトを保存</button>
     <button class="btn" id="btnOpen">開く</button>
@@ -54,7 +54,8 @@
             <div class="knob" id="seekKnob" style="left:0%"></div>
           </div>
         </div>
-        <button class="tbtn" title="音量">🔊</button>
+        <span class="volicon" aria-hidden="true">🔊</span>
+        <input type="range" class="vol" id="volSlider" min="0" max="100" value="100" title="音量">
       </div>
 
       <div class="actions">

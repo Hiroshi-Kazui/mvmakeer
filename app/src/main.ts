@@ -47,6 +47,43 @@ function initHeaderActions(): void {
   document.getElementById("btnOpen")?.addEventListener("click", () => void handleOpen());
 }
 
+/** ヘッダーのプロジェクト名クリックでインライン編集(Enter/フォーカスアウトで確定、Escで取消)。 */
+function initProjectRename(): void {
+  const box = document.getElementById("projectNameBox");
+  const label = document.getElementById("projectName");
+  const input = document.getElementById("projectNameInput") as HTMLInputElement | null;
+  if (!box || !label || !input) return;
+
+  const beginEdit = (): void => {
+    if (input.style.display !== "none") return;
+    input.value = getState().project.name;
+    label.style.display = "none";
+    input.style.display = "inline-block";
+    input.focus();
+    input.select();
+  };
+
+  const endEdit = (commit: boolean): void => {
+    if (input.style.display === "none") return;
+    input.style.display = "none";
+    label.style.display = "";
+    const name = input.value.trim();
+    const { project } = getState();
+    if (commit && name && name !== project.name) {
+      setProject({ ...project, name });
+    }
+  };
+
+  box.addEventListener("click", beginEdit);
+  input.addEventListener("click", (e) => e.stopPropagation());
+  input.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") endEdit(true);
+    else if (e.key === "Escape") endEdit(false);
+  });
+  input.addEventListener("blur", () => endEdit(true));
+}
+
 let currentPath: string | null = null;
 
 async function handleSave(): Promise<void> {
@@ -111,6 +148,7 @@ function initCloseGuard(): void {
 window.addEventListener("DOMContentLoaded", () => {
   initMaterialsPanel();
   initHeaderActions();
+  initProjectRename();
   initPreviewEngine();
   initInspector();
   initTelopActions();

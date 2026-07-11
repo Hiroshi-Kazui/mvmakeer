@@ -314,6 +314,12 @@ textarea.txt:focus, input.txt:focus { outline: none; border-color: var(--accent)
 }
 .stepper button:hover { background: var(--accent); border-color: var(--accent); }
 .stepper .now-btn { width: auto; padding: 0 8px; font-size: 11px; white-space: nowrap; }
+#projectNameBox { cursor: pointer; }
+#projectNameInput {
+  background: var(--bg-2); border: 1px solid var(--accent); border-radius: 6px;
+  color: var(--text-0); font: inherit; padding: 2px 8px; width: 200px; margin: 0 4px;
+}
+.transport .vol { width: 76px; accent-color: var(--accent); }
 .swatch-row { display: flex; gap: 6px; }
 .swatch { width: 26px; height: 26px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
 .swatch.on { border-color: var(--accent); }
